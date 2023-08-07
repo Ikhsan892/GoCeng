@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "query.sql"
+    schema: "./migrations"
+    gen:
+      go:
+        package: "db"
+        sql_package: "pgx/v5"
+        out: "sqlc"
+    database:
+      uri: "postgres://postgres:admin@localhost:5431/goceng?sslmode=disable&search_path=public"
