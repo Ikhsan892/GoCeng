@@ -4,25 +4,18 @@ import (
 	"context"
 	"github.com/ikhsan892/goceng/application/domain"
 	db "github.com/ikhsan892/goceng/sqlc"
-	"github.com/jackc/pgx/v5"
 )
 
 type CustomerPostgresRepository struct {
 	sql *db.Queries
 }
 
-func NewCustomerPostgresRepository(tx *db.Queries) *CustomerPostgresRepository {
+func NewCustomerPostgresRepository(tx *db.Queries) CustomerRepository {
 	return &CustomerPostgresRepository{sql: tx}
 }
 
 func (c CustomerPostgresRepository) toAggregate(user db.User) (domain.Customer, error) {
 	return domain.NewCustomer(uint(user.ID), user.Username, user.Address)
-}
-
-func (c *CustomerPostgresRepository) WithTx(tx pgx.Tx) *CustomerPostgresRepository {
-	c.sql.WithTx(tx)
-
-	return c
 }
 
 func (c CustomerPostgresRepository) GetById(ctx context.Context, id uint) (domain.Customer, error) {

@@ -30,6 +30,21 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 	return err
 }
 
+const createProduct = `-- name: CreateProduct :exec
+INSERT INTO products(name,price,stock) VALUES ($1,$2::float8,$3::int)
+`
+
+type CreateProductParams struct {
+	Name    string
+	Column2 float64
+	Column3 int32
+}
+
+func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) error {
+	_, err := q.db.Exec(ctx, createProduct, arg.Name, arg.Column2, arg.Column3)
+	return err
+}
+
 const getById = `-- name: GetById :one
 SELECT id, username, password, email, address FROM users WHERE id = $1 LIMIT 1
 `
@@ -48,18 +63,25 @@ func (q *Queries) GetById(ctx context.Context, id int64) (User, error) {
 }
 
 const getProductsByIds = `-- name: GetProductsByIds :many
-SELECT id, name, price, stock FROM products WHERE id = ANY($1::int[])
+SELECT id,name,price::float4,stock::bigint FROM products WHERE id = ANY($1::int[])
 `
 
-func (q *Queries) GetProductsByIds(ctx context.Context, dollar_1 []int32) ([]Product, error) {
+type GetProductsByIdsRow struct {
+	ID    int64
+	Name  string
+	Price float32
+	Stock int64
+}
+
+func (q *Queries) GetProductsByIds(ctx context.Context, dollar_1 []int32) ([]GetProductsByIdsRow, error) {
 	rows, err := q.db.Query(ctx, getProductsByIds, dollar_1)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Product
+	var items []GetProductsByIdsRow
 	for rows.Next() {
-		var i Product
+		var i GetProductsByIdsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,

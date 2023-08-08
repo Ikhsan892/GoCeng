@@ -6,7 +6,7 @@ SELECT * FROM users WHERE id = $1 LIMIT 1;
 INSERT INTO users(username,password,email,address) VALUES ($1,$2,$3,$4);
 
 -- name: GetProductsByIds :many
-SELECT * FROM products WHERE id = ANY($1::int[]);
+SELECT id,name,price::float4,stock::bigint FROM products WHERE id = ANY($1::int[]);
 
--- name: SaveOrder :exec
-INSERT INTO orders(order_id,user_id,payment_type)
+-- name: CreateProduct :exec
+INSERT INTO products(name,price,stock) VALUES ($1,$2::float8,$3::int); 

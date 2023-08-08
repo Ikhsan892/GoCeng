@@ -13,6 +13,11 @@ type TestProductPostgresRepository struct {
 	mock.Mock
 }
 
+func (c *TestProductPostgresRepository) CreateProduct(ctx context.Context, arg db.CreateProductParams) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (c *TestProductPostgresRepository) toAggregate(product db.Product) (*domain.Product, error) {
 	param := c.Called(product)
 

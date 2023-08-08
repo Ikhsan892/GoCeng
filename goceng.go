@@ -4,15 +4,19 @@ import (
 	"context"
 	"github.com/ikhsan892/goceng/application/infrastructures"
 	"github.com/jackc/pgx/v5"
+	"github.com/meilisearch/meilisearch-go"
+	"go.uber.org/zap"
 	"log"
 	"os"
 )
 
 type App interface {
 	DB() *pgx.Conn
+	SearchEngine() *meilisearch.Client
 	WithDBConnection(name string) *pgx.Conn
 	Settings() Config
 	Shutdown() error
+	ZapLogger() *zap.Logger
 }
 
 func New() *Goceng {
@@ -24,8 +28,10 @@ func New() *Goceng {
 
 type Goceng struct {
 	pgConns      map[string]*pgx.Conn
+	searchEngine *meilisearch.Client
 	ctx          context.Context
 	cfg          Config
+	logger       *zap.Logger
 	notification chan struct{}
 }
 
@@ -48,8 +54,26 @@ func (g *Goceng) initPostgreSQL(cfg Config) error {
 	return err
 }
 
+func (g *Goceng) initMeilisearch(cfg Config) {
+
+	g.searchEngine = meilisearch.NewClient(meilisearch.ClientConfig{
+		Host:    "http://127.0.0.1:7700",
+		APIKey:  "",
+		Timeout: 0,
+	})
+
+}
+
 func (g *Goceng) Settings() Config {
 	return g.cfg
+}
+
+func (g Goceng) ZapLogger() *zap.Logger {
+	return g.logger
+}
+
+func (g Goceng) SearchEngine() *meilisearch.Client {
+	return g.searchEngine
 }
 
 // starting point of application
@@ -60,6 +84,7 @@ func (g *Goceng) Start() {
 	g.ctx = ctx
 	g.notification = make(chan struct{}, 1)
 	g.cfg = cfg
+	g.logger = NewZapLogger()
 
 	if err := g.initPostgreSQL(cfg); err != nil {
 		log.Fatal(err)

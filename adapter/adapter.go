@@ -1,7 +1,13 @@
 package adapter
 
-import "github.com/ikhsan892/goceng"
+import "log"
 
-type Adapter interface {
-	Init(app goceng.App) error
+type IAdapter interface {
+	Init() error
+}
+
+func RunAdapter(adapter IAdapter) {
+	if err := adapter.Init(); err != nil {
+		log.Println(err)
+	}
 }
